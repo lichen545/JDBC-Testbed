@@ -1,6 +1,6 @@
 import java.sql.*;
 import java.io.*;
-import java.util.Arrays;
+import java.util.*;
 
 class transactionProcessor {
 
@@ -37,11 +37,22 @@ class transactionProcessor {
 
 	public static void all_subparts(Statement stmt, String[] args) throws SQLException {
 		System.out.println("finding all subparts of pid = " + args[1]);
-		ResultSet rs = stmt.executeQuery("SELECT * FROM parts WHERE mid = " + args[1]);
-		List<Integer> subparts = new ArrayList();
+		ResultSet rs = stmt.executeQuery("SELECT * FROM subpart_of WHERE mid = " + args[1]);
+		List<Integer> subparts = new ArrayList<Integer>();
 		while (rs.next()) {
-			System.out.println(">>>subpart found: (" + rs.getInt(1) + "  " + rs.getString(2) + ")");
-			stmt.executeUpdate("INSERT INTO subpart_of VALUES(" + args[1] + ", " + args[i] + ")");
+			System.out.println(">>>subpart found: (" + rs.getInt(1) + ")");
+			subparts.add(rs.getInt(1));
+		}
+
+		//search for subparts of subparts
+		for (int i=0; i<subparts.size(); i++) {
+			ResultSet ss = stmt.executeQuery("SELECT * FROM subpart_of WHERE mid = " + subparts.get(i));
+			while (ss.next()) {
+				if (!subparts.contains(ss.getInt(1))) {
+					System.out.println(">>>subpart found: (" + ss.getInt(1) + ")");
+					subparts.add(ss.getInt(1));
+				}
+			}
 		}
 	}
 
